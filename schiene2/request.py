@@ -40,4 +40,4 @@ def request(payload):
     'checksum': md5(json.dumps(body), 'bdI8UVj40K5fvxwf')
   }
   res = requests.post('https://reiseauskunft.bahn.de/bin/mgate.exe', headers=headers, data=json.dumps(body), params=params)
-  return res
+  return res.json()
