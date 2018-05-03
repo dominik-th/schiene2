@@ -10,6 +10,15 @@ def formatTimedelta(td):
   minutes = str(int(td.total_seconds() / 60 % 60))
   return hours + ':' + ('0' if len(minutes) <= 1 else '') + minutes
 
+# https://github.com/kennell/schiene/blob/3cccbbc940b85dd041cab49d8a85bf6265896cdf/schiene/schiene.py#L40
+def parse_stations(html):
+  """
+      Strips JS code, loads JSON
+  """
+  html = html.replace('SLs.sls=', '').replace(';SLs.showSuggestion();', '')
+  html = json.loads(html)
+  return html['suggestions']
+
 class Schiene2():
 
   dbAccessToken = '3356e54605aa647bc8cb8c4eb70a1938'
@@ -132,3 +141,19 @@ class Schiene2():
 
       journeys.append(journey)
     return journeys
+
+  # https://github.com/kennell/schiene/blob/3cccbbc940b85dd041cab49d8a85bf6265896cdf/schiene/schiene.py#L99
+  def stations(self, station, limit=10):
+    """
+    Find stations for given queries
+    Args:
+        station (str): search query
+        limit (int): limit number of results
+    """
+    query = {
+      'start': 1,
+      'S': station + '?',
+      'REQ0JourneyStopsB': limit
+    }
+    rsp = requests.get('http://reiseauskunft.bahn.de/bin/ajax-getstop.exe/dn', params=query)
+    return parse_stations(rsp.text)
