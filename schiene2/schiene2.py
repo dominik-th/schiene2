@@ -105,25 +105,30 @@ class Schiene2():
       except:
         pass
 
-      if delay:
-        journey['delay'] =  delay
-
-      journey['ontime'] = False if delay else True
-
       time = parse.td(connection['dur'])
       journey['time'] = formatTimedelta(time)
 
       price = connection['trfRes']['fareSetL'][0]['fareL'][0]['prc']
       journey['price'] = None if price <= 0 else price / 100
 
+      if delay:
+        journey['delay'] =  delay
+
       products = []
+      canceled = False
       for leg in connection['secL']:
         if leg['type'] == 'JNY':
           product = res['svcResL'][0]['res']['common']['prodL'][leg['jny']['prodX']]['prodCtx']['catOut']
+          if 'aCncl' in leg['arr'] and leg['arr']['aCncl']:
+            canceled = True
+          if 'dCncl' in leg['dep'] and leg['dep']['dCncl']:
+            canceled = True
           if not product in products:
             products.append(product)
 
       journey['products'] =  products
+      journey['ontime'] = False if delay or canceled else True
+      journey['canceled'] = canceled
 
       journeys.append(journey)
     return journeys
