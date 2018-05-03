@@ -1,4 +1,5 @@
 import requests
+import json
 import xml.etree.ElementTree as ET
 from datetime import datetime
 import request
@@ -13,13 +14,24 @@ class Schiene2():
 
   dbAccessToken = '3356e54605aa647bc8cb8c4eb70a1938'
 
-  def eva(self, station):
+  def evaDBApi(self, station):
     headers = {
       'Authorization': 'Bearer {0}'.format(self.dbAccessToken)
     }
     res = requests.get('https://api.deutschebahn.com/timetables/v1/station/{0}'.format(station), headers=headers)
     root = ET.fromstring(res.content)
     return root[0].attrib['eva']
+
+  def eva(self, station):
+    query = {
+      'start': 1,
+      'S': station + '?',
+      'REQ0JourneyStopsB': 1 # number of results
+    }
+    rsp = requests.get('https://reiseauskunft.bahn.de/bin/ajax-getstop.exe/dn', params=query)
+    results = rsp.text.replace('SLs.sls=', '').replace(';SLs.showSuggestion();', '')
+    results = json.loads(results)['suggestions']
+    return int(results[0]['extId'])
 
   def connections(self, origin, destination, dt=datetime.now(), only_direct=False):
     try:
@@ -55,7 +67,7 @@ class Schiene2():
       'outFrwd': True, # not sure what this is
       'getIV': False, # walk and bike alternatives?
       'getPolyline': False, # shape for displaying on a map
-      'numF': 1, # number of results
+      'numF': 5, # number of results
       'trfReq': {
         'jnyCl': 2, # first class options
         'tvlrProf': [{
@@ -66,8 +78,6 @@ class Schiene2():
       }
     }
     res = request.request(req)
-    print(destinationEva)
-    #print(res)
     connections = res['svcResL'][0]['res']['outConL']
     journeys = []
     for connection in connections:
@@ -106,5 +116,4 @@ class Schiene2():
       price = connection['trfRes']['fareSetL'][0]['fareL'][0]['prc']
       journey['price'] = None if price <= 0 else price / 100
       journeys.append(journey)
-    print(journeys)
-    return
+    return journeys
