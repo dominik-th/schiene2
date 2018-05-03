@@ -115,5 +115,15 @@ class Schiene2():
 
       price = connection['trfRes']['fareSetL'][0]['fareL'][0]['prc']
       journey['price'] = None if price <= 0 else price / 100
+
+      products = []
+      for leg in connection['secL']:
+        if leg['type'] == 'JNY':
+          product = res['svcResL'][0]['res']['common']['prodL'][leg['jny']['prodX']]['prodCtx']['catOut']
+          if not product in products:
+            products.append(product)
+
+      journey['products'] =  products
+
       journeys.append(journey)
     return journeys
