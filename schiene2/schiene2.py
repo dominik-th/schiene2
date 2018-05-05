@@ -13,7 +13,7 @@ def formatTimedelta(td):
 # https://github.com/kennell/schiene/blob/3cccbbc940b85dd041cab49d8a85bf6265896cdf/schiene/schiene.py#L40
 def parse_stations(html):
   """
-      Strips JS code, loads JSON
+  Strips JS code, loads JSON
   """
   html = html.replace('SLs.sls=', '').replace(';SLs.showSuggestion();', '')
   html = json.loads(html)
@@ -32,6 +32,11 @@ class Schiene2():
     return root[0].attrib['eva']
 
   def eva(self, station):
+    """
+    Find EVA-number of a station by its name
+    Args:
+      station (str): name of station
+    """
     query = {
       'start': 1,
       'S': station + '?',
@@ -43,6 +48,14 @@ class Schiene2():
     return int(results[0]['extId'])
 
   def connections(self, origin, destination, dt=datetime.now(), only_direct=False):
+    """
+    Find connections between two stations
+    Args:
+      origin (str): origin station
+      destination (str): destination station
+      dt (datetime): date and time for query
+      only_direct (bool): only direct connections
+    """
     try:
       originEva = self.eva(origin)
       destinationEva = self.eva(destination)
@@ -53,7 +66,7 @@ class Schiene2():
       'outTime': dt.strftime('%H%M%S'), # departure time
       'ctxScr': None, # not sure
       'getPasslist': False, # get passed stations
-      'maxChg': 0 if only_direct else 5, # transfers
+      'maxChg': 0 if only_direct else 10, # transfers
       'minChgTime': 0, # transfer time
       'depLocL': [{ # departure location
         'lid': 'A=1@L={0}@'.format(originEva)
@@ -147,8 +160,8 @@ class Schiene2():
     """
     Find stations for given queries
     Args:
-        station (str): search query
-        limit (int): limit number of results
+      station (str): search query
+      limit (int): limit number of results
     """
     query = {
       'start': 1,
