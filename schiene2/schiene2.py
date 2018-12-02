@@ -158,5 +158,5 @@ class Schiene2():
       'S': station + '?',
       'REQ0JourneyStopsB': limit
     }
-    rsp = requests.get('http://reiseauskunft.bahn.de/bin/ajax-getstop.exe/dn', params=query)
+    rsp = requests.get('https://reiseauskunft.bahn.de/bin/ajax-getstop.exe/dn', params=query)
     return parse_stations(rsp.text)
